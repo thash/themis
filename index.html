@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri App</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <main class="container">
+      <h1>File Renamer</h1>
+
+      <div class="file-selection">
+        <button id="select-file-btn">Select File</button>
+        <div id="selected-file-display">No file selected</div>
+      </div>
+
+      <div class="debug-section" style="margin-top: 2rem;">
+        <h3>Debug Information</h3>
+        <div id="debug-output" style="text-align: left; background: #f0f0f0; padding: 1rem; border-radius: 8px; max-height: 200px; overflow: auto;"></div>
+      </div>
+    </main>
+  </body>
+</html>
