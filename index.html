@@ -10,11 +10,27 @@
 
   <body>
     <main class="container">
-      <h1>File Renamer</h1>
+      <h1>Themis</h1>
 
       <div class="file-selection">
-        <button id="select-file-btn">Select File</button>
-        <div id="selected-file-display">No file selected</div>
+        <div class="input-container">
+          <div class="input-group">
+            <label for="prefix-input">Prefix:</label>
+            <input type="text" id="prefix-input" placeholder="Enter prefix (e.g. x_)">
+          </div>
+          <div class="input-group">
+            <label for="suffix-input">Suffix:</label>
+            <input type="text" id="suffix-input" placeholder="Enter suffix (e.g. _today)">
+          </div>
+          <div id="rename-error" class="error-message"></div>
+        </div>
+        <button id="select-file-btn">Select Files</button>
+        <div id="selected-files-container">
+          <h3>Selected Files</h3>
+          <div id="selected-files-list">No files selected</div>
+        </div>
+        <button id="rename-files-btn" disabled>Rename Files</button>
+        <div id="rename-result"></div>
       </div>
 
       <div class="debug-section" style="margin-top: 2rem;">
