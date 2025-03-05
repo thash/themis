@@ -44,4 +44,5 @@ fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2) + '\n');
 console.log(`Updated tauri.conf.json to version ${newVersion}`);
 
 console.log(`\nAll files updated to version ${newVersion}`);
-console.log(`\nTo use this script, run: node update-version.js x.y.z`);
+console.log(`\nThe GitHub Actions workflow will automatically use this version for the artifact name.`);
+console.log(`\nTo use this script, run: npm run update-version x.y.z`);
