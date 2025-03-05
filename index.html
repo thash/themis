@@ -10,7 +10,10 @@
 
   <body>
     <main class="container">
-      <h1>Themis</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Themis</h1>
+        <span id="app-version" style="font-size: 0.8rem; color: #666;">v0.0.0</span>
+      </div>
 
       <div class="file-selection">
         <div class="input-container">
@@ -24,12 +27,15 @@
           </div>
           <div id="rename-error" class="error-message"></div>
         </div>
-        <button id="select-file-btn">Select Files</button>
-        <div id="selected-files-container">
-          <h3>Selected Files</h3>
-          <div id="selected-files-list">No files selected</div>
+        <div class="button-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <button id="select-file-btn">ファイルをリネーム</button>
+          <button id="select-folder-btn">フォルダをリネーム</button>
         </div>
-        <button id="rename-files-btn" disabled>Rename Files</button>
+        <div id="selected-files-container">
+          <h3>Selected Files/Folders</h3>
+          <div id="selected-files-list">No files/folders selected</div>
+        </div>
+        <button id="rename-files-btn" disabled>リネーム実行</button>
         <div id="rename-result"></div>
       </div>
 

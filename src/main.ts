@@ -1,14 +1,17 @@
 import { open } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api/tauri";
+import { getVersion } from "@tauri-apps/api/app";
 
 let prefixInput: HTMLInputElement | null;
 let suffixInput: HTMLInputElement | null;
 let renameError: HTMLElement | null;
 let selectFileBtn: HTMLButtonElement | null;
+let selectFolderBtn: HTMLButtonElement | null;
 let renameFilesBtn: HTMLButtonElement | null;
 let selectedFilesList: HTMLElement | null;
 let renameResult: HTMLElement | null;
 let debugOutput: HTMLElement | null;
+let appVersion: HTMLElement | null;
 
 // Store selected files
 let selectedFiles: string[] = [];
@@ -65,7 +68,7 @@ function updateSelectedFilesUI() {
   if (!selectedFilesList || !renameFilesBtn) return;
 
   if (selectedFiles.length === 0) {
-    selectedFilesList!.innerHTML = "No files selected";
+    selectedFilesList!.innerHTML = "No files/folders selected";
     renameFilesBtn.disabled = true;
   } else {
     // Create a list of files
@@ -146,12 +149,12 @@ async function selectFiles() {
   }
 
   try {
-    logDebug("Opening file dialog...");
+    logDebug("Opening file selection dialog...");
 
-    // Open a file dialog and allow the user to select multiple files
+    // Open a dialog for selecting files
     const selected = await open({
       multiple: true,
-      directory: false
+      directory: false // false for files
     });
 
     logDebug(`Dialog result: ${JSON.stringify(selected)}`);
@@ -170,7 +173,49 @@ async function selectFiles() {
 
     logDebug(`Selected ${selectedFiles.length} files`);
   } catch (error) {
-    const errorMessage = `Error selecting file: ${(error as Error).message}`;
+    const errorMessage = `Error selecting files: ${(error as Error).message}`;
+    console.error(errorMessage);
+    logDebug(errorMessage);
+
+    if (selectedFilesList) {
+      selectedFilesList.innerHTML = errorMessage;
+    }
+  }
+}
+
+async function selectFolders() {
+  // Check if at least one of prefix or suffix is provided
+  if (!validateInputs()) {
+    showError("Please enter at least a prefix or a suffix before selecting folders");
+    return;
+  }
+
+  try {
+    logDebug("Opening folder selection dialog...");
+
+    // Open a dialog for selecting folders
+    const selected = await open({
+      multiple: true,
+      directory: true // true for folders
+    });
+
+    logDebug(`Dialog result: ${JSON.stringify(selected)}`);
+
+    // Handle the case when user cancels the dialog
+    if (selected === null) {
+      logDebug("User cancelled the dialog");
+      return;
+    }
+
+    // Store and display the selected folder paths
+    selectedFiles = Array.isArray(selected) ? selected : [selected];
+
+    // Update UI based on selected folders
+    updateSelectedFilesUI();
+
+    logDebug(`Selected ${selectedFiles.length} folders`);
+  } catch (error) {
+    const errorMessage = `Error selecting folders: ${(error as Error).message}`;
     console.error(errorMessage);
     logDebug(errorMessage);
 
@@ -182,12 +227,12 @@ async function selectFiles() {
 
 async function renameFiles() {
   if (selectedFiles.length === 0) {
-    logDebug("No files selected for renaming");
+    logDebug("No files/folders selected for renaming");
     return;
   }
 
   try {
-    logDebug(`Attempting to rename ${selectedFiles.length} files...`);
+    logDebug(`Attempting to rename ${selectedFiles.length} files/folders...`);
 
     // Call the Rust command to rename files
     const result: { success: boolean; renamed: number; errors: string[] } = await invoke("rename_files_with_prefix_suffix", {
@@ -199,7 +244,7 @@ async function renameFiles() {
     if (renameResult) {
       if (result.success) {
         renameResult.className = "success";
-        renameResult.textContent = `Successfully renamed ${result.renamed} files.`;
+        renameResult.textContent = `Successfully renamed ${result.renamed} files/folders.`;
       } else {
         renameResult.className = "error";
         renameResult.textContent = `Error: ${result.errors.join(", ")}`;
@@ -213,7 +258,7 @@ async function renameFiles() {
     updateSelectedFilesUI();
 
   } catch (error) {
-    const errorMessage = `Error renaming files: ${(error as Error).message}`;
+    const errorMessage = `Error renaming files/folders: ${(error as Error).message}`;
     console.error(errorMessage);
     logDebug(errorMessage);
 
@@ -224,17 +269,33 @@ async function renameFiles() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   logDebug("DOM loaded, initializing app...");
 
   prefixInput = document.querySelector("#prefix-input");
   suffixInput = document.querySelector("#suffix-input");
   renameError = document.querySelector("#rename-error");
   selectFileBtn = document.querySelector("#select-file-btn");
+  selectFolderBtn = document.querySelector("#select-folder-btn");
   renameFilesBtn = document.querySelector("#rename-files-btn");
   selectedFilesList = document.querySelector("#selected-files-list");
   renameResult = document.querySelector("#rename-result");
   debugOutput = document.querySelector("#debug-output");
+  appVersion = document.querySelector("#app-version");
+
+  // Display app version
+  if (appVersion) {
+    try {
+      const version = await getVersion();
+      appVersion.textContent = `v${version}`;
+      logDebug(`App version: ${version}`);
+    } catch (error) {
+      console.error("Failed to get app version:", error);
+      logDebug(`Error getting app version: ${(error as Error).message}`);
+    }
+  } else {
+    logDebug("ERROR: App version element not found!");
+  }
 
   if (prefixInput) {
     logDebug("Prefix input found, adding event listener");
@@ -259,11 +320,21 @@ window.addEventListener("DOMContentLoaded", () => {
   if (selectFileBtn) {
     logDebug("Select files button found, adding event listener");
     selectFileBtn.addEventListener("click", () => {
-      logDebug("Button clicked, opening file dialog");
+      logDebug("File button clicked, opening file dialog");
       selectFiles();
     });
   } else {
     logDebug("ERROR: Select files button not found!");
+  }
+
+  if (selectFolderBtn) {
+    logDebug("Select folders button found, adding event listener");
+    selectFolderBtn.addEventListener("click", () => {
+      logDebug("Folder button clicked, opening folder dialog");
+      selectFolders();
+    });
+  } else {
+    logDebug("ERROR: Select folders button not found!");
   }
 
   if (renameFilesBtn) {

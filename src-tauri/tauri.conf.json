@@ -9,7 +9,7 @@
   },
   "package": {
     "productName": "themis",
-    "version": "0.1.0"
+    "version": "0.1.2"
   },
   "tauri": {
     "allowlist": {
@@ -23,7 +23,9 @@
       },
       "fs": {
         "all": true,
-        "scope": ["**"]
+        "scope": [
+          "**"
+        ]
       },
       "path": {
         "all": true
