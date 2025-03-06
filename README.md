@@ -2,8 +2,8 @@
 
 A simple utility for renaming files with prefixes/suffixes, or replacement. Made with [Tauri v1](https://v1.tauri.app/).
 
-<img width="400" alt="Image" src="https://github.com/user-attachments/assets/49e32fa9-29d2-4b7d-abbb-bc9f4d3fb5c9" />
-<img width="400" alt="Image" src="https://github.com/user-attachments/assets/11207166-cde7-4f04-b4b4-df4ff7acd70e" />
+<img width="400" alt="Image" src="https://github.com/user-attachments/assets/c2734232-0bbb-443a-91f8-60cfc176658d" />
+<img width="400" alt="Image" src="https://github.com/user-attachments/assets/939122d2-a921-4ee7-8d95-beb25977ffd1" />
 
 
 ## For Windows Users
