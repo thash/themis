@@ -50,3 +50,18 @@ You can find links to Pre-built installers in `Actions` > select the latest succ
 ## For other platforms
 
 It's a personal project created for a Windows user, so I didn't prepare for other platforms. However, [Tauri v1](https://v1.tauri.app/) supports multi-platform development (+ I myself developed Themis on macOS, which [works well locally](https://makeameme.org/meme/it-works-on-5b27d8). Therefore, while I haven't set it up myself, providing builds for other platforms is possible without significant difficulty.
+
+## Development Guide
+
+### Launch Themis locally in development mode
+
+```bash
+npm run tauri:dev
+```
+
+### Available Scripts
+
+- `npm run tauri:dev` - Run linting and start the development server (use this for daily development)
+- `npm run lint` - Run ESLint to check for code issues. Automatically run before launching the development server
+- `npm run tauri build` - Build the application for production
+- `npm run update-version <version_string>` - Update the application version
