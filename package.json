@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "lint": "eslint src --ext .ts",
     "tauri": "tauri",
+    "tauri:dev": "npm run lint && tauri dev",
     "update-version": "node update-version.js"
   },
   "dependencies": {
@@ -15,6 +17,9 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
+    "eslint": "^8.57.1",
     "typescript": "~5.6.2",
     "vite": "^6.0.3"
   }

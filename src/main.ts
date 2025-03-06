@@ -41,7 +41,7 @@ function logDebug(message: string) {
 // Function to extract just the filename from a path
 function getFileName(filePath: string): string {
   // Split the path by directory separator (works for both Windows and Unix-like)
-  const parts = filePath.split(/[\/\\]/);
+  const parts = filePath.split(/[/\\]/);
   // Return the last part (the filename)
   return parts[parts.length - 1];
 }
