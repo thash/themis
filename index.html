@@ -15,17 +15,42 @@
       </div>
 
       <div class="file-selection">
-        <div class="input-container">
-          <div class="input-group">
-            <label for="prefix-input">前に付ける文字</label>
-            <input type="text" id="prefix-input" placeholder="Enter prefix (e.g. x_)">
+        <div class="tab-switch-wrapper">
+          <div class="tab-switch left">
+            <div id="prefix-suffix-tab" class="tab active" data-direction="left">前後に追加</div><!--
+            --><div id="replace-tab" class="tab" data-direction="right">文字列置換</div>
           </div>
-          <div class="input-group">
-            <label for="suffix-input">後ろに付ける文字</label>
-            <input type="text" id="suffix-input" placeholder="Enter suffix (e.g. _today)">
-          </div>
-          <div id="rename-error" class="error-message"></div>
         </div>
+
+        <div class="tab-content-container">
+          <div id="prefix-suffix-container" class="mode-container active">
+            <div class="input-container">
+              <div class="input-group">
+                <label for="prefix-input">前に付ける文字</label>
+                <input type="text" id="prefix-input" placeholder="Enter prefix (e.g. x_)">
+              </div>
+              <div class="input-group">
+                <label for="suffix-input">後ろに付ける文字</label>
+                <input type="text" id="suffix-input" placeholder="Enter suffix (e.g. _today)">
+              </div>
+            </div>
+          </div>
+
+          <div id="replace-container" class="mode-container">
+            <div class="input-container">
+              <div class="input-group">
+                <label for="find-text-input">検索する文字列</label>
+                <input type="text" id="find-text-input" placeholder="Enter text to find (e.g. _2024-)">
+              </div>
+              <div class="input-group">
+                <label for="replace-text-input">置換後の文字列</label>
+                <input type="text" id="replace-text-input" placeholder="Enter replacement (e.g. _2025-)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="rename-error" class="error-message"></div>
         <div class="button-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
           <button id="select-file-btn">ファイルを選択</button>
           <button id="select-folder-btn">フォルダを選択</button>

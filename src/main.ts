@@ -2,8 +2,15 @@ import { open } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api/tauri";
 import { getVersion } from "@tauri-apps/api/app";
 
+// UI Elements
 let prefixInput: HTMLInputElement | null;
 let suffixInput: HTMLInputElement | null;
+let findTextInput: HTMLInputElement | null;
+let replaceTextInput: HTMLInputElement | null;
+let prefixSuffixTab: HTMLButtonElement | null;
+let replaceTab: HTMLButtonElement | null;
+let prefixSuffixContainer: HTMLElement | null;
+let replaceContainer: HTMLElement | null;
 let renameError: HTMLElement | null;
 let selectFileBtn: HTMLButtonElement | null;
 let selectFolderBtn: HTMLButtonElement | null;
@@ -15,6 +22,10 @@ let appVersion: HTMLElement | null;
 
 // Store selected files
 let selectedFiles: string[] = [];
+
+// Track current mode
+type RenameMode = "prefix-suffix" | "replace";
+let currentMode: RenameMode = "prefix-suffix";
 
 // Function to log debug messages
 function logDebug(message: string) {
@@ -45,8 +56,54 @@ function getSuffix(): string {
   return suffixInput?.value || "";
 }
 
+// Function to get the text to find
+function getFindText(): string {
+  return findTextInput?.value || "";
+}
+
+// Function to get the replacement text
+function getReplaceText(): string {
+  return replaceTextInput?.value || "";
+}
+
+// Function to switch between modes
+function switchMode(mode: RenameMode) {
+  currentMode = mode;
+  const tabSwitch = document.querySelector('.tab-switch');
+
+  // Update UI to reflect the current mode
+  if (prefixSuffixTab && replaceTab && prefixSuffixContainer && replaceContainer && tabSwitch) {
+    if (mode === "prefix-suffix") {
+      tabSwitch.classList.remove('right');
+      tabSwitch.classList.add('left');
+      prefixSuffixTab.classList.add("active");
+      replaceTab.classList.remove("active");
+      prefixSuffixContainer.classList.add("active");
+      replaceContainer.classList.remove("active");
+    } else {
+      tabSwitch.classList.remove('left');
+      tabSwitch.classList.add('right');
+      prefixSuffixTab.classList.remove("active");
+      replaceTab.classList.add("active");
+      prefixSuffixContainer.classList.remove("active");
+      replaceContainer.classList.add("active");
+    }
+  }
+
+  // Clear any error messages
+  if (renameError) {
+    renameError.textContent = "";
+  }
+
+  // Clear selected files when switching modes
+  selectedFiles = [];
+  updateSelectedFilesUI();
+
+  logDebug(`Switched to ${mode} mode`);
+}
+
 // Function to generate the new filename with prefix and suffix
-function generateNewFileName(fileName: string): string {
+function generateNewFileNameWithPrefixSuffix(fileName: string): string {
   const prefix = getPrefix();
   const suffix = getSuffix();
 
@@ -60,6 +117,24 @@ function generateNewFileName(fileName: string): string {
   } else {
     // No extension, just add prefix and suffix
     return `${prefix}${fileName}${suffix}`;
+  }
+}
+
+// Function to generate the new filename with text replacement
+function generateNewFileNameWithReplace(fileName: string): string {
+  const findText = getFindText();
+  const replaceText = getReplaceText();
+
+  // Replace all occurrences of the find text with the replace text
+  return fileName.split(findText).join(replaceText);
+}
+
+// Function to generate the new filename based on the current mode
+function generateNewFileName(fileName: string): string {
+  if (currentMode === "prefix-suffix") {
+    return generateNewFileNameWithPrefixSuffix(fileName);
+  } else {
+    return generateNewFileNameWithReplace(fileName);
   }
 }
 
@@ -116,16 +191,32 @@ function updateSelectedFilesUI() {
 
 // Function to check if inputs are valid and update UI accordingly
 function validateInputs(): boolean {
-  const prefix = getPrefix();
-  const suffix = getSuffix();
-  const isValid = prefix.trim() !== '' || suffix.trim() !== '';
+  let isValid = false;
 
-  if (renameError) {
-    // Clear any existing error message
+  if (currentMode === "prefix-suffix") {
+    const prefix = getPrefix();
+    const suffix = getSuffix();
+    isValid = prefix.trim() !== '' || suffix.trim() !== '';
+
+    if (!isValid && renameError) {
+      renameError.textContent = 'Please enter at least a prefix or a suffix';
+    }
+  } else { // replace mode
+    const findText = getFindText();
+    const replaceText = getReplaceText();
+    isValid = findText.trim() !== '';
+
+    if (!isValid && renameError) {
+      renameError.textContent = 'Please enter text to find';
+    }
+  }
+
+  if (renameError && isValid) {
+    // Clear any existing error message if inputs are valid
     renameError.textContent = '';
   }
 
-  // If files are already selected, update the UI to reflect the new prefix/suffix
+  // If files are already selected, update the UI to reflect the changes
   if (selectedFiles.length > 0) {
     updateSelectedFilesUI();
   }
@@ -142,9 +233,9 @@ function showError(message: string) {
 }
 
 async function selectFiles() {
-  // Check if at least one of prefix or suffix is provided
+  // Check if inputs are valid
   if (!validateInputs()) {
-    showError("Please enter at least a prefix or a suffix before selecting files");
+    // validateInputs already shows the appropriate error message
     return;
   }
 
@@ -184,9 +275,9 @@ async function selectFiles() {
 }
 
 async function selectFolders() {
-  // Check if at least one of prefix or suffix is provided
+  // Check if inputs are valid
   if (!validateInputs()) {
-    showError("Please enter at least a prefix or a suffix before selecting folders");
+    // validateInputs already shows the appropriate error message
     return;
   }
 
@@ -234,12 +325,23 @@ async function renameFiles() {
   try {
     logDebug(`Attempting to rename ${selectedFiles.length} files/folders...`);
 
-    // Call the Rust command to rename files
-    const result: { success: boolean; renamed: number; errors: string[] } = await invoke("rename_files_with_prefix_suffix", {
-      filePaths: selectedFiles,
-      prefix: getPrefix(),
-      suffix: getSuffix()
-    });
+    let result: { success: boolean; renamed: number; errors: string[] };
+
+    if (currentMode === "prefix-suffix") {
+      // Call the Rust command to rename files with prefix and suffix
+      result = await invoke("rename_files_with_prefix_suffix", {
+        filePaths: selectedFiles,
+        prefix: getPrefix(),
+        suffix: getSuffix()
+      });
+    } else {
+      // Call the Rust command to rename files with text replacement
+      result = await invoke("rename_files_with_text_replacement", {
+        filePaths: selectedFiles,
+        findText: getFindText(),
+        replaceText: getReplaceText()
+      });
+    }
 
     if (renameResult) {
       if (result.success) {
@@ -255,6 +357,16 @@ async function renameFiles() {
 
     // Clear the selected files after renaming
     selectedFiles = [];
+
+    // Clear input fields
+    if (currentMode === "prefix-suffix") {
+      if (prefixInput) prefixInput.value = "";
+      if (suffixInput) suffixInput.value = "";
+    } else {
+      if (findTextInput) findTextInput.value = "";
+      if (replaceTextInput) replaceTextInput.value = "";
+    }
+
     updateSelectedFilesUI();
 
   } catch (error) {
@@ -272,8 +384,15 @@ async function renameFiles() {
 window.addEventListener("DOMContentLoaded", async () => {
   logDebug("DOM loaded, initializing app...");
 
+  // Initialize UI elements
   prefixInput = document.querySelector("#prefix-input");
   suffixInput = document.querySelector("#suffix-input");
+  findTextInput = document.querySelector("#find-text-input");
+  replaceTextInput = document.querySelector("#replace-text-input");
+  prefixSuffixTab = document.querySelector("#prefix-suffix-tab");
+  replaceTab = document.querySelector("#replace-tab");
+  prefixSuffixContainer = document.querySelector("#prefix-suffix-container");
+  replaceContainer = document.querySelector("#replace-container");
   renameError = document.querySelector("#rename-error");
   selectFileBtn = document.querySelector("#select-file-btn");
   selectFolderBtn = document.querySelector("#select-folder-btn");
@@ -315,6 +434,46 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   } else {
     logDebug("ERROR: Suffix input not found!");
+  }
+
+  if (findTextInput) {
+    logDebug("Find text input found, adding event listener");
+    findTextInput.addEventListener("input", () => {
+      validateInputs();
+      logDebug(`Find text updated to: ${findTextInput?.value}`);
+    });
+  } else {
+    logDebug("ERROR: Find text input not found!");
+  }
+
+  if (replaceTextInput) {
+    logDebug("Replace text input found, adding event listener");
+    replaceTextInput.addEventListener("input", () => {
+      validateInputs();
+      logDebug(`Replace text updated to: ${replaceTextInput?.value}`);
+    });
+  } else {
+    logDebug("ERROR: Replace text input not found!");
+  }
+
+  if (prefixSuffixTab) {
+    logDebug("Prefix/suffix tab found, adding event listener");
+    prefixSuffixTab.addEventListener("click", () => {
+      switchMode("prefix-suffix");
+      logDebug("Switched to prefix/suffix mode");
+    });
+  } else {
+    logDebug("ERROR: Prefix/suffix tab not found!");
+  }
+
+  if (replaceTab) {
+    logDebug("Replace tab found, adding event listener");
+    replaceTab.addEventListener("click", () => {
+      switchMode("replace");
+      logDebug("Switched to replace mode");
+    });
+  } else {
+    logDebug("ERROR: Replace tab not found!");
   }
 
   if (selectFileBtn) {
