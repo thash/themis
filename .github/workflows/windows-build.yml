@@ -31,8 +31,6 @@ jobs:
 
     - name: Install Visual Studio Build Tools
       uses: ilammy/msvc-dev-cmd@v1
-      with:
-        components: desktop
 
     - name: Install dependencies
       run: npm install

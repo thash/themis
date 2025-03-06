@@ -123,10 +123,10 @@ function generateNewFileNameWithPrefixSuffix(fileName: string): string {
 // Function to generate the new filename with text replacement
 function generateNewFileNameWithReplace(fileName: string): string {
   const findText = getFindText();
-  const replaceText = getReplaceText();
+  const replaceWithText = getReplaceText();
 
   // Replace all occurrences of the find text with the replace text
-  return fileName.split(findText).join(replaceText);
+  return fileName.split(findText).join(replaceWithText);
 }
 
 // Function to generate the new filename based on the current mode
@@ -136,6 +136,140 @@ function generateNewFileName(fileName: string): string {
   } else {
     return generateNewFileNameWithReplace(fileName);
   }
+}
+
+// Helper function to create a colored span
+function createColoredSpan(text: string, color?: string): HTMLSpanElement {
+  const span = document.createElement('span');
+  span.textContent = text;
+  if (color) {
+    span.style.color = color;
+  }
+  return span;
+}
+
+// Function to create HTML for the original filename in replace mode
+function createOriginalFilenameHtmlForReplaceMode(fileName: string, findText: string): HTMLDivElement {
+  const container = document.createElement('div');
+  container.style.flexBasis = "45%";
+
+  if (!findText || findText.length === 0) {
+    container.textContent = fileName;
+    return container;
+  }
+
+  // Split the filename by the findText
+  const parts = fileName.split(findText);
+
+  // If findText is not found in the filename
+  if (parts.length === 1) {
+    container.textContent = fileName;
+    return container;
+  }
+
+  // Add parts with appropriate colors
+  for (let i = 0; i < parts.length; i++) {
+    // Add the regular part
+    if (parts[i]) {
+      container.appendChild(createColoredSpan(parts[i]));
+    }
+
+    // Add the findText part (in red) except after the last part
+    if (i < parts.length - 1) {
+      container.appendChild(createColoredSpan(findText, "#e74c3c"));
+    }
+  }
+
+  return container;
+}
+
+// Function to create HTML for the new filename in replace mode
+function createNewFilenameHtmlForReplaceMode(fileName: string, replaceText: string): HTMLDivElement {
+  const container = document.createElement('div');
+  container.style.flexBasis = "45%";
+
+  if (!replaceText || replaceText.length === 0) {
+    container.textContent = fileName;
+    return container;
+  }
+
+  // Split the filename by the replaceText
+  const parts = fileName.split(replaceText);
+
+  // If replaceText is not found in the filename
+  if (parts.length === 1) {
+    container.textContent = fileName;
+    return container;
+  }
+
+  // Add parts with appropriate colors
+  for (let i = 0; i < parts.length; i++) {
+    // Add the regular part
+    if (parts[i]) {
+      container.appendChild(createColoredSpan(parts[i]));
+    }
+
+    // Add the replaceText part (in blue) except after the last part
+    if (i < parts.length - 1) {
+      container.appendChild(createColoredSpan(replaceText, "#396cd8"));
+    }
+  }
+
+  return container;
+}
+
+// Function to create HTML for the original filename in prefix/suffix mode
+function createOriginalFilenameHtmlForPrefixSuffixMode(fileName: string): HTMLDivElement {
+  const container = document.createElement('div');
+  container.style.flexBasis = "45%";
+  container.textContent = fileName;
+  return container;
+}
+
+// Function to create HTML for the new filename in prefix/suffix mode
+function createNewFilenameHtmlForPrefixSuffixMode(fileName: string, prefix: string, suffix: string): HTMLDivElement {
+  const container = document.createElement('div');
+  container.style.flexBasis = "45%";
+
+  const lastDotIndex = fileName.lastIndexOf('.');
+
+  if (lastDotIndex !== -1) {
+    // File has an extension
+    const nameWithoutExt = fileName.substring(0, lastDotIndex);
+    const extension = fileName.substring(lastDotIndex);
+
+    // Add prefix (in blue)
+    if (prefix) {
+      container.appendChild(createColoredSpan(prefix, "#396cd8"));
+    }
+
+    // Add original name (normal color)
+    container.appendChild(createColoredSpan(nameWithoutExt));
+
+    // Add suffix (in blue)
+    if (suffix) {
+      container.appendChild(createColoredSpan(suffix, "#396cd8"));
+    }
+
+    // Add extension (normal color)
+    container.appendChild(createColoredSpan(extension));
+  } else {
+    // No extension
+    // Add prefix (in blue)
+    if (prefix) {
+      container.appendChild(createColoredSpan(prefix, "#396cd8"));
+    }
+
+    // Add original name (normal color)
+    container.appendChild(createColoredSpan(fileName));
+
+    // Add suffix (in blue)
+    if (suffix) {
+      container.appendChild(createColoredSpan(suffix, "#396cd8"));
+    }
+  }
+
+  return container;
 }
 
 // Function to update the UI based on selected files
@@ -157,10 +291,21 @@ function updateSelectedFilesUI() {
       fileItem.style.display = "flex";
       fileItem.style.alignItems = "center";
 
-      // Original filename
-      const originalNameEl = document.createElement("div");
-      originalNameEl.textContent = fileName;
-      originalNameEl.style.flexBasis = "45%";
+      // Original filename with appropriate highlighting
+      let originalNameEl;
+      let newNameEl;
+
+      if (currentMode === "prefix-suffix") {
+        const prefix = getPrefix();
+        const suffix = getSuffix();
+        originalNameEl = createOriginalFilenameHtmlForPrefixSuffixMode(fileName);
+        newNameEl = createNewFilenameHtmlForPrefixSuffixMode(fileName, prefix, suffix);
+      } else {
+        const findText = getFindText();
+        const replaceText = getReplaceText();
+        originalNameEl = createOriginalFilenameHtmlForReplaceMode(fileName, findText);
+        newNameEl = createNewFilenameHtmlForReplaceMode(newFileName, replaceText);
+      }
 
       // Arrow indicating transformation
       const arrowEl = document.createElement("div");
@@ -169,12 +314,6 @@ function updateSelectedFilesUI() {
       arrowEl.style.margin = "0 1rem";
       arrowEl.style.flexBasis = "10%";
       arrowEl.style.textAlign = "center";
-
-      // New filename with prefix and suffix
-      const newNameEl = document.createElement("div");
-      newNameEl.textContent = newFileName;
-      newNameEl.style.color = "#396cd8";
-      newNameEl.style.flexBasis = "45%";
 
       // Add elements to the file item
       fileItem.appendChild(originalNameEl);
@@ -203,7 +342,6 @@ function validateInputs(): boolean {
     }
   } else { // replace mode
     const findText = getFindText();
-    const replaceText = getReplaceText();
     isValid = findText.trim() !== '';
 
     if (!isValid && renameError) {
@@ -224,13 +362,6 @@ function validateInputs(): boolean {
   return isValid;
 }
 
-// Function to show error message
-function showError(message: string) {
-  if (renameError) {
-    renameError.textContent = message;
-    logDebug(`Error: ${message}`);
-  }
-}
 
 async function selectFiles() {
   // Check if inputs are valid
