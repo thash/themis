@@ -4,32 +4,31 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/src/styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
+    <title>Themis</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
 
   <body>
     <main class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>Themis</h1>
+      <div style="display: flex; justify-content: flex-end; align-items: center;">
         <span id="app-version" style="font-size: 0.8rem; color: #666;">v0.0.0</span>
       </div>
 
       <div class="file-selection">
         <div class="input-container">
           <div class="input-group">
-            <label for="prefix-input">Prefix:</label>
+            <label for="prefix-input">前に付ける文字</label>
             <input type="text" id="prefix-input" placeholder="Enter prefix (e.g. x_)">
           </div>
           <div class="input-group">
-            <label for="suffix-input">Suffix:</label>
+            <label for="suffix-input">後ろに付ける文字</label>
             <input type="text" id="suffix-input" placeholder="Enter suffix (e.g. _today)">
           </div>
           <div id="rename-error" class="error-message"></div>
         </div>
         <div class="button-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <button id="select-file-btn">ファイルをリネーム</button>
-          <button id="select-folder-btn">フォルダをリネーム</button>
+          <button id="select-file-btn">ファイルを選択</button>
+          <button id="select-folder-btn">フォルダを選択</button>
         </div>
         <div id="selected-files-container">
           <h3>Selected Files/Folders</h3>

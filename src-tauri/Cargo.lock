@@ -3045,7 +3045,7 @@ dependencies = [
 
 [[package]]
 name = "themis"
-version = "0.1.3"
+version = "0.1.5"
 dependencies = [
  "serde",
  "serde_json",
